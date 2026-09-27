@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "name": "EconomizAI Monthly Spending",
+    "slug": "economizai-monthly-spending-dashboard",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  }
+}

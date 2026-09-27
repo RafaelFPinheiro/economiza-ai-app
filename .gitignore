@@ -1,0 +1,67 @@
+node_modules/
+# React Native
+android/
+ios/
+*.keystore
+*.jks
+*.p8
+
+# Expo
+.expo/
+.expo-shared/
+
+# Build
+dist/
+build/
+ios/build/
+android/app/build/
+
+# Dependency directories
+/.pnp
+.pnp.js
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Runtime data
+.env
+.env.*
+.DS_Store
+
+# Editors
+.vscode/
+.idea/
+
+# TypeScript
+*.tsbuildinfo
+
+# macOS
+.DS_Store
+
+# Metro cache
+/.metro-cache
+# Node / Expo
+node_modules/
+.expo/
+dist/
+build/
+*.log
+npm-debug.log*
+
+e.env
+.env.*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.swp
