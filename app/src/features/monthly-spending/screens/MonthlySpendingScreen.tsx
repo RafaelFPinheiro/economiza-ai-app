@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AppHeader } from '../../../shared/ui/AppHeader';
 import { availableMonths } from '../../../services/mocked/monthlySpendingService';
 import { CategoryBreakdown } from '../components/CategoryBreakdown';
 import { MonthNavigator } from '../components/MonthNavigator';
@@ -50,6 +51,7 @@ export function MonthlySpendingScreen() {
   if (state.status === 'loading') {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+        <AppHeader title="Gastos do mês" />
         <View style={[styles.centered, { paddingBottom: insets.bottom + 16 }]}> 
           <Text style={styles.loadingText}>Carregando gastos do mês...</Text>
         </View>
@@ -60,6 +62,7 @@ export function MonthlySpendingScreen() {
   if (state.status === 'error') {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+        <AppHeader title="Gastos do mês" />
         <View style={[styles.centered, { paddingBottom: insets.bottom + 16 }]}> 
           <Text style={styles.errorText}>{state.errorMessage ?? 'Não foi possível carregar os gastos do mês.'}</Text>
         </View>
@@ -75,7 +78,9 @@ export function MonthlySpendingScreen() {
           contentContainerStyle={[styles.container, { paddingBottom: insets.bottom + 20 }]}
           showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.header}>Gastos do mês</Text>
+          <View style={styles.headerFullWidth}>
+            <AppHeader title="Gastos do mês" />
+          </View>
           {renderNavigator()}
           <View style={[styles.emptyStateContainer, { paddingBottom: insets.bottom + 16 }]}> 
             <Text style={styles.emptyTitle}>Período indisponível</Text>
@@ -94,7 +99,9 @@ export function MonthlySpendingScreen() {
           contentContainerStyle={[styles.container, { paddingBottom: insets.bottom + 20 }]}
           showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.header}>Gastos do mês</Text>
+          <View style={styles.headerFullWidth}>
+            <AppHeader title="Gastos do mês" />
+          </View>
           {renderNavigator()}
           <View style={[styles.emptyStateContainer, { paddingBottom: insets.bottom + 16 }]}> 
             <Text style={styles.emptyTitle}>Nenhum gasto para este mês</Text>
@@ -112,7 +119,9 @@ export function MonthlySpendingScreen() {
         contentContainerStyle={[styles.container, { paddingBottom: insets.bottom + 20 }]}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.header}>Gastos do mês</Text>
+        <View style={styles.headerFullWidth}>
+          <AppHeader title="Gastos do mês" />
+        </View>
         {renderNavigator()}
         <SpendingSummary data={state.data} />
         <CategoryBreakdown categories={state.data.categories} />
@@ -137,18 +146,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#F4F7FB',
     minHeight: '100%'
   },
+  headerFullWidth: {
+    marginHorizontal: -16
+  },
   centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#F4F7FB',
     paddingHorizontal: 18
-  },
-  header: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#101828',
-    marginBottom: 12
   },
   loadingText: {
     fontSize: 16,

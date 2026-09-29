@@ -1,4 +1,5 @@
 export type ComparisonDirection = 'increase' | 'decrease' | 'no-change';
+export type TransactionType = 'income' | 'expense';
 
 export type CategorySummary = {
   category: string;
@@ -11,7 +12,9 @@ export type TransactionSummary = {
   date: string;
   description: string;
   amount: number;
-  category: string;
+  category?: string;
+  type: TransactionType;
+  currency?: string;
 };
 
 export type MonthlySpendingResponse = {

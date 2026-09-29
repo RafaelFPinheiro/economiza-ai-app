@@ -17,11 +17,14 @@ const defaultResponse: MonthlySpendingResponse = {
     { category: 'Outros', amount: 120.5, shareOfTotal: 4.2 }
   ],
   transactions: [
-    { id: 'tx-1', date: '2026-09-12', description: 'Aluguel', amount: -1120, category: 'Moradia' },
-    { id: 'tx-2', date: '2026-09-18', description: 'Mercado', amount: -240, category: 'Alimentação' },
-    { id: 'tx-3', date: '2026-09-07', description: 'Combustível', amount: -180, category: 'Transporte' },
-    { id: 'tx-4', date: '2026-09-14', description: 'Streaming + apps', amount: -42.5, category: 'Lazer' },
-    { id: 'tx-5', date: '2026-09-23', description: 'Energia', amount: -95, category: 'Utilidades' }
+    { id: 'tx-0', date: '2026-09-01', description: 'Salário', amount: 16400, type: 'income' },
+    { id: 'tx-1', date: '2026-09-12', description: 'Aluguel', amount: -1120, category: 'Moradia', type: 'expense' },
+    { id: 'tx-2', date: '2026-09-18', description: 'Supermercado', amount: -240, category: 'Alimentação', type: 'expense' },
+    { id: 'tx-3', date: '2026-09-07', description: 'Combustível', amount: -180, category: 'Transporte', type: 'expense' },
+    { id: 'tx-4', date: '2026-09-14', description: 'Streaming + apps', amount: -42.5, category: 'Lazer', type: 'expense' },
+    { id: 'tx-5', date: '2026-09-23', description: 'Energia', amount: -95, category: 'Utilidades', type: 'expense' },
+    { id: 'tx-6', date: '2026-09-25', description: 'Freelance', amount: 2500, type: 'income' },
+    { id: 'tx-10', date: '2026-09-30', description: 'Restaurante', amount: -120, category: 'Alimentação', type: 'expense' }
   ],
   status: 'ok'
 };
@@ -42,9 +45,9 @@ export async function getMonthlySpendingResponse(month: string): Promise<Monthly
         { category: 'Outros', amount: 70.35, shareOfTotal: 3.9 }
       ],
       transactions: [
-        { id: 'tx-6', date: '2026-07-08', description: 'Aluguel', amount: -980, category: 'Moradia' },
-        { id: 'tx-7', date: '2026-07-15', description: 'Mercado', amount: -220, category: 'Alimentação' },
-        { id: 'tx-8', date: '2026-07-20', description: 'Combustível', amount: -110, category: 'Transporte' }
+        { id: 'tx-7', date: '2026-07-08', description: 'Aluguel', amount: -980, category: 'Moradia', type: 'expense' },
+        { id: 'tx-8', date: '2026-07-15', description: 'Mercado', amount: -220, category: 'Alimentação', type: 'expense' },
+        { id: 'tx-9', date: '2026-07-20', description: 'Combustível', amount: -110, category: 'Transporte', type: 'expense' }
       ],
       status: 'ok'
     };
