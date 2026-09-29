@@ -8,7 +8,7 @@
 
 **US1 refinement constraint**: The current refinement is limited to the existing User Story 1 implementation. Month navigation, US2, US3, backend integration, and new architecture layers remain out of scope unless the active phase explicitly includes US2 month navigation.
 
-**US1 vs US2 scope separation**: User Story 1 covers only the current display of the selected/current mock month. It does not add month navigation or local month-selection state. User Story 2 introduces local month-selection state, bounded month navigation, and the logic that changes which month the dashboard displays. US2 navigation is constrained to the service-provided available month range and must keep empty months distinct from unavailable periods.
+**Domain model note**: Transaction is the canonical concept for account movement. Income and Expense are both transaction types, and category aggregations may be used for either direction when the backend has categorized the transaction. User Story 1 covers only the current display of the selected/current mock month. It does not add month navigation or local month-selection state. User Story 2 introduces local month-selection state, bounded month navigation, and the logic that changes which month the dashboard displays. US2 navigation is constrained to the service-provided available month range and must keep empty months distinct from unavailable periods. Across all stories, the transaction section represents all account activity for the selected month, including both income and expense entries, while the category breakdown remains a backend-provided aggregation of categorized transactions.
 
 **US2 planning note**: The US2 implementation must preserve the current US1 flow and add a month navigator that remains visible in empty and populated months. The service layer owns the list of available months; the screen owns selected-month state; the UI must disable navigation at the valid boundaries and not treat out-of-range navigation as a service error.
 
@@ -54,13 +54,13 @@
 - [X] T010 [P] [US1] Create the monthly dashboard screen shell in `app/src/features/monthly-spending/screens/MonthlySpendingScreen.tsx` to host the summary, comparison, category, and transaction views.
 - [X] T011 [P] [US1] Create the summary and comparison presentation block in `app/src/features/monthly-spending/components/SpendingSummary.tsx` to render the selected month total and the previous-month delta as a directional change and numeric difference.
 - [X] T012 [P] [US1] Create the category breakdown presentation in `app/src/features/monthly-spending/components/CategoryBreakdown.tsx` to render category totals and their relative contribution to the selected month.
-- [X] T013 [P] [US1] Create the transaction list presentation in `app/src/features/monthly-spending/components/TransactionList.tsx` to render the transactions provided by the backend contract in the order and subset already defined by the service contract, without re-implementing financial prioritization rules in the UI.
+- [X] T013 [P] [US1] Create the transaction list presentation in `app/src/features/monthly-spending/components/TransactionList.tsx` to render the complete account-activity list for the selected month, including both income and expense entries, with the service-defined ordering and pagination rules applied to that full list rather than to a filtered spend-only subset.
 - [X] T014 [US1] Implement the service-to-screen data flow in `app/src/features/monthly-spending/hooks/useMonthlySpending.ts` so the screen reads the backend-prepared `MonthlySpendingResponse` and presents it without duplicating business logic in the UI layer.
 - [X] T015 [US1] Add the empty-state and failure-state handling in `app/src/features/monthly-spending/screens/MonthlySpendingScreen.tsx` so a month with no financial data and a failed service request are represented as distinct and user-safe states.
 - [X] T016 [US1] Validate contract-consistency and presentation behavior in `app/src/features/monthly-spending/screens/MonthlySpendingScreen.tsx` and related UI components by confirming that values from the mocked backend contract are rendered correctly, empty and error states are distinct, and no frontend recalculation is performed.
 - [X] T017 [US1] Confirm the dashboard renders the required month view and summary information from the mocked dataset in the screen entrypoint without expanding scope beyond the dashboard.
-- [ ] T017A [US1] Verify all user-facing labels and mocked financial descriptions in `app/src/features/monthly-spending/` and `app/src/services/mocked/` are written in Brazilian Portuguese and that no English user-facing labels remain in the current US1 dashboard view.
-- [ ] T017B [US1] Validate BRL presentation and foreign-currency handling in `app/src/features/monthly-spending/components/` and `app/src/services/mocked/` so amounts use Brazilian formatting such as `R$ 2.860,50`, and any mocked transaction using a non-BRL currency explicitly displays its original currency instead of silently converting it to BRL.
+- [X] T017A [US1] Verify all user-facing labels and mocked financial descriptions in `app/src/features/monthly-spending/` and `app/src/services/mocked/` are written in Brazilian Portuguese and that no English user-facing labels remain in the current US1 dashboard view.
+- [X] T017B [US1] Validate BRL presentation and foreign-currency handling in `app/src/features/monthly-spending/components/` and `app/src/services/mocked/` so amounts use Brazilian formatting such as `R$ 2.860,50`, and any mocked transaction using a non-BRL currency explicitly displays its original currency instead of silently converting it to BRL. This must remain true for both expense and income entries when the service includes mixed-direction account activity.
 - [ ] T017C [US1] Confirm iOS safe-area compliance in `app/src/features/monthly-spending/screens/MonthlySpendingScreen.tsx` and related layout components so content does not overlap the status bar and bottom content respects the safe area insets.
 
 ### US1 refinement checklist
@@ -90,7 +90,7 @@
 - [X] T018 [P] [US2] Keep the month navigation state in `app/src/features/monthly-spending/screens/MonthlySpendingScreen.tsx` or a minimal local hook limited to selected month, loading, empty, and error UI states, and constrain the UI to the service-provided available month range; no global state management is introduced.
 - [X] T019 [P] [US2] Add month navigation controls to the screen in `app/src/features/monthly-spending/components/MonthNavigator.tsx` to move between adjacent months while keeping the dashboard aligned with the selected month and preventing navigation beyond the available dataset.
 - [X] T020 [US2] Update the screen data flow in `app/src/features/monthly-spending/screens/MonthlySpendingScreen.tsx` so month selection triggers the correct mocked service response and refreshes the dashboard summary and transaction list for the newly selected month.
-- [X] T021 [US2] Validate presentation and contract behavior in `app/src/features/monthly-spending/screens/MonthlySpendingScreen.tsx` by confirming that the selected month updates the rendered values from the backend contract, the comparison value is displayed as provided, and empty/error states remain distinct without frontend recalculation.
+- [X] T021 [US2] Validate presentation and contract behavior in `app/src/features/monthly-spending/screens/MonthlySpendingScreen.tsx` by confirming that the selected month updates the rendered values from the backend contract, the comparison value is displayed as provided, and empty/error states remain distinct without frontend recalculation. The transaction list must still represent the full account activity for the month, including both income and expense entries.
 - [X] T022 [US2] Handle empty and unavailable months separately in `app/src/features/monthly-spending/components/MonthNavigator.tsx` or the screen so a valid empty month keeps navigation available and a month outside the available dataset shows a clear boundary message without being treated as a service failure.
 
 **Checkpoint**: At this point, User Story 1 must be complete and User Story 2 should build on that existing screen and hook flow in sequence, not as an independent implementation.
@@ -110,23 +110,23 @@ J. An empty month is not treated as a service failure.
 
 ---
 
-## Phase 5: User Story 3 - Interpret spending patterns quickly (Priority: P2)
+## Phase 5: User Story 3 - Understand monthly patterns from aggregated data (Priority: P2)
 
-**Goal**: Make it easy for users to understand the main drivers of spending for the selected month.
+**Goal**: Make it easy for users to understand the main pattern of the selected month from the data prepared by the service, without creating new frontend ranking or transaction-selection logic.
 
-**Independent Test**: A user can identify the largest category and the highest-value transactions for a month without needing to inspect raw data manually.
+**Independent Test**: A user can interpret the month’s category composition and account movement from the service-provided aggregates and the complete transaction list without needing to inspect raw data manually.
 
 ### Implementation for User Story 3
 
-**Clarified US3 requirement**: The implementation must improve interpretability at a glance. It must surface the dominant category and the most relevant expenses using service-provided metadata and ordering without the frontend calculating ranking, proportions, or transaction relevance. The UI can add emphasis or hierarchy, but it must not create new financial business logic.
+**Clarified US3 requirement**: The implementation must improve interpretability at a glance using backend-provided category totals, shares, and the full month account activity. The UI may emphasize the presentation of aggregated data, but it must not create ranking, re-aggregation, or transaction subset logic in the frontend.
 
-- [ ] T023 [P] [US3] Define and present a dominant-category experience in `app/src/features/monthly-spending/components/CategoryBreakdown.tsx` that makes the largest category visually obvious using service-provided category order, rank, or explicit top-category metadata without frontend-derived ranking.
-- [ ] T024 [P] [US3] Define and present the most relevant expenses in `app/src/features/monthly-spending/components/TransactionList.tsx` using the service-defined transaction subset and order, with visual hierarchy for highest-value entries and no frontend sort or selection logic.
-- [ ] T025 [US3] Validate the contract and presentation flow in `app/src/features/monthly-spending/screens/MonthlySpendingScreen.tsx` and related components to confirm that category ordering, category emphasis, transaction ordering, and comparison values still come from the service response and no financial recalculation has been introduced.
+- [ ] T023 [P] [US3] Present the category breakdown in `app/src/features/monthly-spending/components/CategoryBreakdown.tsx` using service-provided totals and shares so the user can understand the composition of the month without frontend-derived ranking or category selection.
+- [ ] T024 [P] [US3] Present the full account-activity list in `app/src/features/monthly-spending/components/TransactionList.tsx` using the service-defined order, without building a ranked or selected subset in the frontend.
+- [ ] T025 [US3] Validate the contract and presentation flow in `app/src/features/monthly-spending/screens/MonthlySpendingScreen.tsx` and related components to confirm that category values, list order, and comparison values still come from the service response and no financial recalculation has been introduced.
 - [ ] T026 [US3] Ensure the dashboard remains understandable for low-data, uneven-distribution, and empty-month scenarios in `app/src/features/monthly-spending/screens/MonthlySpendingScreen.tsx` by preserving the existing empty-state and navigation behavior and keeping the category/transaction presentation readable without new rule logic.
-- [ ] T027 [US3] Review the feature flow and scope compliance in `app/src/features/monthly-spending/` so the dashboard remains limited to monthly expense review, no new product areas are introduced, and the service contract remains the single source of truth for interpretation metadata.
+- [ ] T027 [US3] Review the feature flow and scope compliance in `app/src/features/monthly-spending/` so the dashboard remains limited to monthly account-activity review, no new product areas are introduced, and the service contract remains the single source of truth for interpretation metadata.
 
-**Checkpoint**: US3 is not accepted until the dominant category and the principal expense hierarchy are validated on-device and the service contract remains the source of truth.
+**Checkpoint**: US3 is not accepted until the category composition and monthly account activity are validated on-device and the service contract remains the source of truth.
 
 ---
 

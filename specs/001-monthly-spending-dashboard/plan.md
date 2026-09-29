@@ -6,7 +6,7 @@
 
 ## Summary
 
-The feature delivers a frontend-only monthly spending dashboard for EconomizAI. It shows the selected month’s total spending, previous-month comparison, category breakdown, and the transaction subset/order defined by the backend-facing contract and FR-005 while using mocked service responses only. The core architectural decision is to keep presentation behavior separate from the service contract boundary so the mocked implementation can later be replaced by a real API-backed service without requiring presentation-layer changes.
+The feature delivers a frontend-only monthly account-movement dashboard for EconomizAI. It shows the selected month’s result/balance provided by the backend, the previous-month comparison, category aggregations for categorized transactions, and the full account-activity transaction list for the selected month, including both income and expense entries, while using mocked service responses only. Transaction is the canonical domain concept; Expense and Income are both subtypes. The category breakdown remains a backend-derived aggregation of categorized transactions, while the transaction list covers the user’s month-long account activity rather than a limited subset of the largest expenses. The core architectural decision is to keep presentation behavior separate from the service contract boundary so the mocked implementation can later be replaced by a real API-backed service without requiring presentation-layer changes.
 
 The current approved refinement for User Story 1 narrows the scope to a polished Brazilian personal-finance dashboard experience: Brazilian Portuguese labels, BRL formatting, explicit foreign-currency presentation when relevant, compact information hierarchy, and safe-area-aware mobile layout. The US2 clarification adds an explicit month-navigation layer for the same dashboard while keeping financial calculations and service responsibilities outside the frontend. The selected month remains a local UI interaction state, and navigation is bounded by the service-provided available range instead of arbitrary historical or future months.
 
@@ -26,7 +26,7 @@ The current approved refinement for User Story 1 narrows the scope to a polished
 
 **Performance Goals**: Dashboard content should render promptly for a selected month and remain readable and lightweight on mobile devices while maintaining a compact financial-app layout.
 
-**Constraints**: Frontend-only scope; mock service responses only; no real Open Finance integration; no authentication or database infrastructure; no duplication of backend financial business logic inside the mobile app; all user-facing text remains in PT-BR by default; BRL is the default presentation currency; safe-area handling is required for iOS; month navigation is bounded to the service-provided availability range; empty months remain distinct from unavailable periods; US3 remains explicitly out of scope.
+**Constraints**: Frontend-only scope; mock service responses only; no real Open Finance integration; no authentication or database infrastructure; no duplication of backend financial business logic inside the mobile app; all user-facing text remains in PT-BR by default; BRL is the default presentation currency; safe-area handling is required for iOS; month navigation is bounded to the service-provided availability range; empty months remain distinct from unavailable periods; the dashboard shows monthly account movement and backend-provided result/balance, the transaction list includes both income and expense entries for the selected month, and category aggregations remain backend-derived rather than frontend-calculated; US3 remains explicitly out of scope.
 
 **Scale/Scope**: Single feature focused on the monthly spending dashboard; no account management, budgeting, notifications, Open Finance connectivity, or arbitrary date browsing beyond the available mocked months.
 
@@ -37,6 +37,14 @@ The current approved refinement for User Story 1 narrows the scope to a polished
 ### Service contract: available months
 
 US2 introduces a minimal service contract for month availability. The service layer is the source of truth for the available historical range and must expose a simple operation equivalent to `getAvailableMonths()` that returns an ordered list of months, for example `["2026-07", "2026-08", "2026-09"]`. The mock dataset must explicitly support this real-world case: `2026-07` is available with data, `2026-08` is included in `availableMonths` but returns an empty financial response, and `2026-09` is available with data. The frontend must not infer boundaries by looking at the values in `MonthlySpendingResponse` or by inspecting transaction totals.
+
+## US3 Design Requirements
+
+### Interpretation via backend-provided aggregates
+
+US3 remains a presentation-focused interpretation layer for the selected month, but its scope is limited to making the service-provided category totals and full account-activity list easier to understand. The frontend may emphasize the presentation of aggregated values and the service-defined list order, but it must not create ranking logic, select a transaction subset, or derive new financial meaning from raw rows.
+
+The dashboard should help the user interpret the month’s composition and movement using the backend-prepared category shares and the complete account-activity list for the selected month. This preserves the product objective of quick understanding without introducing a ranked or filtered transaction panel in the frontend.
 
 ### Local month-selection state
 
@@ -59,7 +67,7 @@ The first available month disables the previous control and the last available m
 
 ### Validation focus for US2
 
-The validation plan for US2 focuses on whether navigation remains available for empty months, whether boundaries are enforced correctly, and whether the service contract remains the single source of truth for the months that can be navigated. The validation should include the current US1 states (loading, empty, error) without introducing new financial rules into the frontend. It must explicitly cover: September with data; navigating backward to August; August as a valid but empty month with month navigation still visible; navigating from August back to July; July as the first available month with the previous control disabled; navigating forward to September; September as the last available month with the next control disabled; no arbitrary navigation outside `availableMonths`; and the fact that an empty month is not a service failure.
+The validation plan for US2 focuses on whether navigation remains available for empty months, whether boundaries are enforced correctly, and whether the service contract remains the single source of truth for the months that can be navigated. The validation should include the current US1 states (loading, empty, error) without introducing new financial rules into the frontend. It must explicitly cover: September with data; navigating backward to August; August as a valid but empty month with month navigation still visible; navigating from August back to July; July as the first available month with the previous control disabled; navigating forward to September; September as the last available month with the next control disabled; no arbitrary navigation outside `availableMonths`; and the fact that an empty month is not a service failure. The monthly transaction list remains the full account activity for the selected month, not a spend-only filtered list.
 
 ## Constitution Check
 
@@ -123,8 +131,9 @@ app/
 
 - The current approved work remains focused on the dashboard experience, with US2 clarified as the bounded month-navigation phase and US3 explicitly deferred.
 - The frontend may manage local selected-month state for US2, but it must not infer the available date range from financial values or create global state.
-- The service layer is the source of truth for monthly totals, category values, comparison values, transaction order, and the list of available months.
+- The service layer is the source of truth for monthly totals, category values, comparison values, transaction order, the list of available months, and the full account-activity list for the selected month.
 - The frontend remains presentation-only, formatting values for PT-BR and BRL while preserving the service-provided business semantics.
+- The category breakdown remains a spend-focused view; the transaction list is broader and includes both income and expense entries for the month.
 - The screen must respect iOS safe areas without using device-specific or hardcoded status-bar workarounds.
 - Empty months and unavailable periods are separate states and must be handled distinctly in the UI.
 - No Open Finance, backend implementation, or unnecessary abstraction is introduced in this plan.

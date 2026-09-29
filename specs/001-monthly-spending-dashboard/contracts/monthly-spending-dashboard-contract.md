@@ -6,7 +6,7 @@ Define the business-facing contract between the dashboard presentation layer and
 
 ## Service responsibility
 
-The service layer is responsible for providing month-level spending data, category totals, comparator values, and transaction lists using the project’s mocked responses. It must emulate the future backend contract closely enough that presentation components are not coupled to mock-specific structure or transport details.
+The service layer is responsible for providing month-level spending data, category totals, comparator values, and transaction lists using the project’s mocked responses. It must emulate the future backend contract closely enough that presentation components are not coupled to mock-specific structure or transport details. The transaction list must include all account activity for the selected month, including both money entering and leaving the account; it is not a filtered or ranked subset limited to "main expenses".
 
 ## Request model
 
@@ -37,8 +37,8 @@ The frontend may call a service operation conceptually equivalent to `getAvailab
 ```text
 MonthlySpendingResponse {
   month: string
-  totalSpending: number
-  previousMonthTotal: number
+  monthlyResult: number
+  previousMonthResult: number
   comparisonDifference: number
   comparisonDirection: "increase" | "decrease" | "no-change"
   categories: CategorySummary[]
@@ -47,7 +47,7 @@ MonthlySpendingResponse {
 }
 ```
 
-`MonthlySpendingResponse` contains values that are already calculated or prepared by the backend service contract. The frontend is responsible for presenting these values; it does not perform the financial calculations itself.
+`MonthlySpendingResponse` contains values that are already calculated or prepared by the backend service contract. The frontend is responsible for presenting these values; it does not perform the financial calculations itself. The `monthlyResult` field represents the result/balance of the month as provided by the backend, and the `transactions` array represents the month’s account activity as a whole, including both income and expense entries. Categories remain backend-derived aggregations of categorized transactions and are not calculated in the frontend.
 
 ### CategorySummary
 
@@ -59,6 +59,8 @@ CategorySummary {
 }
 ```
 
+This object represents a backend-prepared aggregation of categorized transactions for the selected month. The frontend does not calculate totals, shares, or ranking for categories.
+
 ### TransactionSummary
 
 ```text
@@ -67,11 +69,13 @@ TransactionSummary {
   date: string
   description: string
   amount: number
-  category: string
+  categoryId?: string
+  category?: string
+  type: "income" | "expense"
 }
 ```
 
-If a transaction represents a foreign-currency expense, the service should expose the original currency detail alongside the amount so the presentation layer can display it explicitly without applying a silent conversion.
+Transaction is the canonical account movement concept. Income and Expense are types of Transaction. A category may be attached to either direction when the backend has categorized the transaction. If a transaction represents a foreign-currency entry, the service should expose the original currency detail alongside the amount so the presentation layer can display it explicitly without applying a silent conversion.
 
 ## Error and empty-state handling
 
