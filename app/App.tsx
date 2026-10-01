@@ -3,6 +3,10 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { LoginScreen } from './src/features/auth/screens/LoginScreen';
+import { SignupScreen } from './src/features/auth/screens/SignupScreen';
+import { useAuth } from './src/features/auth/hooks/useAuth';
+import { AuthGate } from './src/shared/auth/AuthGate';
 import { MonthlySpendingScreen } from './src/features/monthly-spending/screens/MonthlySpendingScreen';
 import { CreateExpenseScreen } from './src/features/expenses/screens/CreateExpenseScreen';
 import { EditExpenseScreen } from './src/features/expenses/screens/EditExpenseScreen';
@@ -76,6 +80,9 @@ export default function App() {
   const [screen, setScreen] = useState<ViewKey>('home');
   const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(null);
   const [categories, setCategories] = useState<ExpenseCategory[]>([]);
+  const [authScreen, setAuthScreen] = useState<'login' | 'signup'>('login');
+  const [authRefreshKey, setAuthRefreshKey] = useState(0);
+  const { loginUser, signupUser, logout, errorMessage, isSubmitting } = useAuth();
 
   useEffect(() => {
     getExpenseCategories().then(setCategories);
@@ -98,6 +105,23 @@ export default function App() {
 
     setSelectedExpenseId(null);
     setScreen(tab);
+  };
+
+  const handleLogin = async (email: string, password: string) => {
+    await loginUser(email, password);
+    setAuthRefreshKey((current) => current + 1);
+  };
+
+  const handleSignup = async (email: string, password: string, displayName?: string) => {
+    await signupUser(email, password, displayName);
+    setAuthRefreshKey((current) => current + 1);
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    setScreen('home');
+    setSelectedExpenseId(null);
+    setAuthRefreshKey((current) => current + 1);
   };
 
   const renderScreen = () => {
@@ -132,7 +156,14 @@ export default function App() {
     }
 
     if (screen === 'more') {
-      return <PlaceholderScreen title="Mais" description="Configurações e funcionalidades futuras ficarão aqui." />;
+      return (
+        <View style={styles.moreContainer}>
+          <PlaceholderScreen title="Mais" description="Configurações e funcionalidades futuras ficarão aqui." />
+          <Pressable accessibilityRole="button" onPress={handleLogout} style={styles.logoutButton}>
+            <Text style={styles.logoutButtonText}>Sair</Text>
+          </Pressable>
+        </View>
+      );
     }
 
     return (
@@ -146,20 +177,43 @@ export default function App() {
     );
   };
 
+  const authLoginScreen = (
+    <LoginScreen
+      onLogin={handleLogin}
+      onGoToSignup={() => setAuthScreen('signup')}
+      isSubmitting={isSubmitting}
+      errorMessage={errorMessage}
+    />
+  );
+
+  const authSignupScreen = (
+    <SignupScreen
+      onSignup={handleSignup}
+      onGoToLogin={() => setAuthScreen('login')}
+      isSubmitting={isSubmitting}
+      errorMessage={errorMessage}
+    />
+  );
+
   return (
     <SafeAreaProvider>
       <StatusBar style="dark" />
-      <View style={styles.shell}>
-        <View style={styles.content}>{renderScreen()}</View>
-        <BottomTabBar
-          activeTab={activeTab}
-          onSelect={handleSelectTab}
-          onAdd={() => {
-            setSelectedExpenseId(null);
-            setScreen('create');
-          }}
-        />
-      </View>
+      <AuthGate
+        refreshKey={authRefreshKey}
+        loginScreen={authScreen === 'login' ? authLoginScreen : authSignupScreen}
+      >
+        <View style={styles.shell}>
+          <View style={styles.content}>{renderScreen()}</View>
+          <BottomTabBar
+            activeTab={activeTab}
+            onSelect={handleSelectTab}
+            onAdd={() => {
+              setSelectedExpenseId(null);
+              setScreen('create');
+            }}
+          />
+        </View>
+      </AuthGate>
     </SafeAreaProvider>
   );
 }
@@ -190,6 +244,23 @@ const styles = StyleSheet.create({
     color: '#475467',
     textAlign: 'center',
     fontSize: 15
+  },
+  moreContainer: {
+    flex: 1,
+    backgroundColor: '#F4F7FB'
+  },
+  logoutButton: {
+    marginHorizontal: 24,
+    marginBottom: 20,
+    backgroundColor: '#1D4ED8',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center'
+  },
+  logoutButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700'
   },
   tabBarShell: {
     backgroundColor: '#FFFFFF',
